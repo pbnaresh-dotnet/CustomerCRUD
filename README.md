@@ -1,3 +1,5 @@
+*Please Install .net 8 
+*restore nuget packages
 *Run the below sql script to  create table in new database 
 
 CREATE TABLE [dbo].[Customer](
@@ -20,6 +22,5 @@ GO
 
 
 *configure the db connection string in appsettings.json file in API Project
-
-* have created MVC project but everything works as SPA on index page of MVC
+* have created MVC project but everything works as SPA (with jquery ajax) on index page of MVC
 * validation, error handling, repository pattern can be added to this to make perfect robust application
