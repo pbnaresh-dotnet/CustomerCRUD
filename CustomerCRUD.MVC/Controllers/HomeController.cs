@@ -1,4 +1,5 @@
 using CustomerCRUD.MVC.Models;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
@@ -12,7 +13,7 @@ namespace CustomerCRUD.MVC.Controllers
         {
             _logger = logger;
         }
-
+        [EnableCors]
         public IActionResult Index()
         {
             return View();

@@ -6,7 +6,7 @@
     public class CustomerModel
     {
        
-        public int CustromerID { get; set; }
+        public int CustomerID { get; set; }
 
       
         public string Name { get; set; }

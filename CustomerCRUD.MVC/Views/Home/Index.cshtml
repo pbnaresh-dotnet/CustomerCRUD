@@ -1,183 +1,177 @@
-﻿﻿@model IEnumerable<Ajax_Crud_App.Models.StudentModel>
-
-@{
+﻿@{
     ViewData["Title"] = "Home Page";
 }
-@section Scripts{
+@section Scripts {
     <script>
-        $(document).ready(function() {
-            // GET BY ID
-            $(".btn-get-student").on("click", function() {
-                var formData = new FormData();
-                var studentid = $(this).attr("data-studentid");
-                var url = '@Url.Action("GetDetailsById", "Home")' + '/' + studentid;
-                $.ajax({
-                    type: 'GET',
-                    url: url,
-                    contentType: false,
-                    processData: false,
-                    cache: false,
-                    data: formData,
-                    success: function(response) {
-                        if (response.responseCode == 0) {
-                            var student = JSON.parse(response.responseMessage);
-                            $("#email").val(student.Email);
-                            $("#name").val(student.Name);
-                            $("#hdn-student-id").val(student.Id);
+        var baseApiUrl = 'https://localhost:7023/api/';
+        function getCustomer(id) {
+            var url = baseApiUrl + 'customer/' + id;
+            console.log(url);
+            $.ajax({
+                type: 'GET',
+                url: url,
+                contentType: 'application/json',
+                dataType: 'json',
+                processData: false,
+                cache: false,
+                success: function (customer) {      
+                    $("#email").val(customer.email);
+                    $("#name").val(customer.name);
+                    $("#hdn-customer-id").val(customer.customerID);
+                },
+                error: function (a, b) {
+                    console.log(a, b);
 
-                        }
-                        else {
-                            bootbox.alert(response.ResponseMessage);
-                        }
-                    },
-                    error: errorCallback
-                });
+                }
             });
+        };
+        function getAllCustomers() {
+            $.ajax({
+                method: 'get',
+                url: baseApiUrl + 'customer',
+                isAsync: true,
+                dataType: "json",
+                success: function (response) {
+                    $('#customer-list').empty();
+                    for (i = 0; i < response.length; i++) {
+
+                        var customer = response[i];
+                        $('#customer-list').append('<tr><td>' + customer.customerID + ' </td><td> ' + customer.name + ' </td><td> ' + customer.email + ' </td><td> <a href="javascript:void(this)" onclick="getCustomer(' + customer.customerID + ')" data-customerid="' + customer.customerID + '" class="btn btn-success btn-get-customer" >Get Customer</a> </td></tr>');
+
+                    }                  
+                },
+                error: function (err, xhr) {
+                    console.log(err, xhr);
+                }
+            })
+        }
+        $(document).ready(function () {
+            getAllCustomers();
+
+
             //SAVE
-            $("#btn-insert-student").on("click", function() {
+            $("#btn-insert-customer").on("click", function () {
                 var formData = new FormData();
                 formData.append("name", $("#name").val());
                 formData.append("email", $("#email").val());
+                formData.append("mobile", '234234');
+                var customer = { CustomerID: 1, Name: $("#name").val(), Email: $("#email").val(), Mobile: "12313" };
+                console.log(customer);
                 $.ajax({
                     type: 'POST',
-                    url: '@Url.Action("InsertStudent", "Home")',
-                    contentType: false,
-                    processData: false,
+                    url: baseApiUrl + "customer",
+                    contentType: 'application/json;charset=utf-8',
                     cache: false,
-                    data: formData,
+                    data: JSON.stringify(customer),
                     success: successCallback,
                     error: errorCallback
                 });
             });
             // UPDATE
-            $("#btn-update-student").on("click", function() {
-                var formData = new FormData();
-                formData.append("id", $("#hdn-student-id").val());
-                formData.append("name", $("#name").val());
-                formData.append("email", $("#email").val());
+            $("#btn-update-customer").on("click", function () {
+
+                var customer = { CustomerID: $("#hdn-customer-id").val(), Name: $("#name").val(), Email: $("#email").val(),Mobile:'23343' };
                 $.ajax({
                     type: 'PUT',
-                    url: '@Url.Action("UpdateStudent", "Home")',
-                    contentType: false,
-                    processData: false,
+                    url: baseApiUrl + "customer",
+                    contentType: 'application/json;charset=utf-8',
                     cache: false,
-                    data: formData,
+                    data: JSON.stringify(customer),
                     success: successCallback,
                     error: errorCallback
                 });
             });
-              //DELETE
-            $("#btn-delete-student").on("click", function() {
+            //DELETE
+            $("#btn-delete-customer").on("click", function () {
                 debugger;
                 var formData = new FormData();
-                formData.append("id", $("#hdn-student-id").val());
+                formData.append("id", $("#hdn-customer-id").val());
                 $.ajax({
                     type: 'DELETE',
-                    url: '@Url.Action("DeleteStudent", "Home")',
+                    url: baseApiUrl + 'customer/' + $("#hdn-customer-id").val(),
                     contentType: false,
                     processData: false,
                     cache: false,
-                    data: formData,
+                    
                     success: successCallback,
                     error: errorCallback
                 });
             });
             function resetForm() {
-                $("#hdn-student-id").val("");
+                $("#hdn-customer-id").val("");
                 $("#name").val("");
                 $("#email").val("");
             }
             function successCallback(response) {
-                debugger;
-                if (response.responseCode == 0) {
-                    resetForm();
-                    bootbox.alert(response.responseMessage, function() {
-
-                        //PERFORM REMAINING LOGIC
-                    });
-                }
-                else {
-                    bootbox.alert(response.ResponseMessage);
-                }
+                resetForm();
+                getAllCustomers();
+                
             };
-            function errorCallback() {
-                bootbox.alert("Something went wrong please contact admin.");
+            function errorCallback(a, b) {
+                console.log(a, b);
+                alert("Something went wrong please contact admin.");
             }
         });
     </script>
 }
-    <div class="text-center">
-        <h1 class="display-4">Welcome To ASP.NET CORE AJAX Demo</h1>
-        <hr />
-    </div>
-    <div class="row">
-        <div class="col-sm-12">
-            <form>
-                <input type="hidden" id="hdn-student-id" />
-                <div class="row g-3">
-                    <div class="col-sm-6">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" placeholder="Enter your email">
-                        <div class="invalid-feedback">
-                            Please enter a valid email address for shipping updates.
-                        </div>
+<div class="text-center">
+    <h1 class="display-4">Customers Details</h1>
+    <hr />
+</div>
+<div class="row">
+    <div class="col-sm-12">
+        <form>
+            <input type="hidden" id="hdn-customer-id" />
+            <div class="row g-3">
+                <div class="col-sm-6">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" placeholder="Enter your email">
+                    <div class="invalid-feedback">
+                        Please enter a valid email address for shipping updates.
                     </div>
-
-                    <div class="col-sm-6">
-                        <label for="lastName" class="form-label">Name</label>
-                        <input type="text" class="form-control" id="name" placeholder="Enter Your Name" value="" required="">
-                        <div class="invalid-feedback">
-                            Name is required.
-                        </div>
-                    </div>
-
                 </div>
-                <table class="table">
-                    <tbody>
-                        <tr>
-                            <td>  <a href="javascript:void(0)" class="btn btn-primary" id="btn-insert-student">Save Student</a></td>
-                            <td>
-                                <a href="javascript:void(0)" class="btn btn-info" id="btn-update-student">Update Student</a>
-                            </td>
-                            <td>
-                                <a href="javascript:void(0)" class="btn btn-danger" id="btn-delete-student">Delete Student</a>
-                            </td>
-                        </tr>
-                    </tbody>
 
-                </table>
-            </form>
+                <div class="col-sm-6">
+                    <label for="lastName" class="form-label">Name</label>
+                    <input type="text" class="form-control" id="name" placeholder="Enter Your Name" value="" required="">
+                    <div class="invalid-feedback">
+                        Name is required.
+                    </div>
+                </div>
 
-        </div>
-        <br />
-    </div>
-    <div class="row">
-        <div class="col-md-12">
-            <table class="table table-bordered">
-                <thead>
+            </div>
+            <table class="table">
+                <tbody>
                     <tr>
-                        <td>#</td>
-                        <td>Name</td>
-                        <td>Email</td>
-                        <td>Action</td>
+                        <td>  <a href="javascript:void(0)" class="btn btn-primary" id="btn-insert-customer">Save Customer</a></td>
+                        <td>
+                            <a href="javascript:void(0)" class="btn btn-info" id="btn-update-customer">Update Customer</a>
+                        </td>
+                        <td>
+                            <a href="javascript:void(0)" class="btn btn-danger" id="btn-delete-customer">Delete Customer</a>
+                        </td>
                     </tr>
-                </thead>
-                <tbody id="student-list">
-                    @{
+                </tbody>
 
-                    foreach (var student in Model)
-                    {
-                                <tr>
-                                    <td>@student.Id</td>
-                                    <td>@student.Name</td>
-                                    <td>@student.Email</td>
-                                    <td>
-                                        <a href="javascript:void(0)" data-studentid="@student.Id" class="btn btn-success btn-get-student">Get Student</a>
-                                    </td>
-                                </tr>
-                    }
-                }
+            </table>
+        </form>
 
+    </div>
+    <br />
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <td>#</td>
+                    <td>Name</td>
+                    <td>Email</td>
+                    <td>Action</td>
+                </tr>
+            </thead>
+            <tbody id="customer-list">
+               
             </tbody>
 
 

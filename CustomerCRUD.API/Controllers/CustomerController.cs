@@ -3,6 +3,7 @@ using CustomerCRUD.API.Entities;
 using CustomerCRUD.API.Models;
 using CustomerCRUD.API;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Cors;
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace CustomerCRUD.API.Controllers
@@ -22,7 +23,8 @@ namespace CustomerCRUD.API.Controllers
             this.dbContext = dbContext;
         }
 
-        [HttpGet]
+        [HttpGet(Name ="GetCustomers")]
+              
         public async Task<ActionResult> GetCustomers()
         {
             try
@@ -32,7 +34,7 @@ namespace CustomerCRUD.API.Controllers
                 var customers = from custEntity in CustomerEntities
                                 select new CustomerModel
                                 {
-                                    CustromerID = custEntity.CustromerID,
+                                    CustomerID = custEntity.CustromerID,
                                     Name = custEntity.Name,
                                     Email = custEntity.Email,
                                     Mobile = custEntity.Mobile,
@@ -47,7 +49,8 @@ namespace CustomerCRUD.API.Controllers
                  "Error retrieving data from the database");
             }
         }
-        [HttpGet("{id:int}")]
+        [HttpGet("{id:int}",Name ="GetCustomer")]
+        
         public async Task<ActionResult<CustomerModel>> GetCustomer(int id)
         {
             try
@@ -55,12 +58,12 @@ namespace CustomerCRUD.API.Controllers
                 var customerModel = await dbContext.Customers
                     .Select(custEntity => new CustomerModel
                     {
-                        CustromerID = custEntity.CustromerID,
+                        CustomerID = custEntity.CustromerID,
                         Name = custEntity.Name,
                         Email = custEntity.Email,
                         Mobile = custEntity.Mobile,
                         IsActive = custEntity.IsActive
-                    }).FirstOrDefaultAsync(cust => cust.CustromerID == id);
+                    }).FirstOrDefaultAsync(cust => cust.CustomerID == id);
 
                 if (customerModel == null) return NotFound();
 
@@ -73,7 +76,7 @@ namespace CustomerCRUD.API.Controllers
                     "Error retrieving data from the database");
             }
         }
-        [HttpPost]
+        [HttpPost(Name ="CreateCustomer")]
         public async Task<ActionResult<CustomerModel>> CreateCustomer(CustomerModel customerModel)
         {
             try
@@ -94,10 +97,10 @@ namespace CustomerCRUD.API.Controllers
                     "Error creating new customer record");
             }
         }
-        [HttpPut("{id:int}", Name = "UpdateCustomer")]
-        public async Task<ActionResult> UpdateUser([FromBody] CustomerModel customerModel)
+        [HttpPut(Name = "UpdateCustomer")]
+        public async Task<ActionResult> Customer( CustomerModel customerModel)
         {
-            var existing = await dbContext.Customers.FindAsync(customerModel.CustromerID);
+            var existing = await dbContext.Customers.FindAsync(customerModel.CustomerID);
 
             if (existing == null)
             {
@@ -113,8 +116,8 @@ namespace CustomerCRUD.API.Controllers
 
             return Ok(existing);
         }
-        [HttpDelete("{id:int}")]
-        public async Task<ActionResult<Customer>> DeleteCustomer(int id)
+        [HttpDelete("{id:int}",Name ="DeleteCustomer")]
+        public async Task<ActionResult<Customer>> Customer(int id)
         {
             try
             {

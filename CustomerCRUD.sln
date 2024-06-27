@@ -4,8 +4,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.10.34928.147
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomerCRUD.MVC", "CustomerCRUD.MVC\CustomerCRUD.MVC.csproj", "{4E29F586-23D5-477D-B162-04812DF02708}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6AA580EA-3970-4599-80A7-39E4BDFA1132} = {6AA580EA-3970-4599-80A7-39E4BDFA1132}
+	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomerCRUD.API", "CustomerCRUD.API\CustomerCRUD.API.csproj", "{6AA580EA-3970-4599-80A7-39E4BDFA1132}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomerCRUD.API", "CustomerCRUD.API\CustomerCRUD.API.csproj", "{6AA580EA-3970-4599-80A7-39E4BDFA1132}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
