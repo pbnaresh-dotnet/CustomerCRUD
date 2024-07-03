@@ -4,6 +4,8 @@ using CustomerCRUD.API.Models;
 using CustomerCRUD.API;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.Extensions.Logging;
+using CustomerCRUD.API.Core;
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace CustomerCRUD.API.Controllers
@@ -12,15 +14,18 @@ namespace CustomerCRUD.API.Controllers
     [ApiController]
     public class CustomerController : ControllerBase
     {
-        private readonly CustomerCRUDDbContext dbContext;
+        private readonly IUnitOfWork _unitOfWork;
+
+        private readonly ILogger<CustomerController> _logger;
 
         //Can use repository pattern if required for better maintenance and reusability, and also for TDD Approach
         // private readonly ICustomerRepository customerRepository;
 
-        public CustomerController(CustomerCRUDDbContext dbContext)
+        public CustomerController(IUnitOfWork unitOfWork, ILogger<CustomerController> logger)
         {
 
-            this.dbContext = dbContext;
+            _unitOfWork = unitOfWork;
+            _logger = logger;
         }
 
         [HttpGet(Name ="GetCustomers")]
@@ -29,91 +34,83 @@ namespace CustomerCRUD.API.Controllers
         {
             try
             {
-                var CustomerEntities = await dbContext.Customers.ToListAsync();
+                var customers = await _unitOfWork.CustomerRepository.GetAllAsync();
 
-                var customers = from custEntity in CustomerEntities
-                                select new CustomerModel
-                                {
-                                    CustomerID = custEntity.CustromerID,
-                                    Name = custEntity.Name,
-                                    Email = custEntity.Email,
-                                    Mobile = custEntity.Mobile,
-                                    IsActive = custEntity.IsActive
-                                };
 
                 return Ok(customers);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError,
                  "Error retrieving data from the database");
             }
         }
         [HttpGet("{id:int}",Name ="GetCustomer")]
         
-        public async Task<ActionResult<CustomerModel>> GetCustomer(int id)
+        public async Task<ActionResult<Customer>> GetCustomer(int id)
         {
             try
             {
-                var customerModel = await dbContext.Customers
-                    .Select(custEntity => new CustomerModel
-                    {
-                        CustomerID = custEntity.CustromerID,
-                        Name = custEntity.Name,
-                        Email = custEntity.Email,
-                        Mobile = custEntity.Mobile,
-                        IsActive = custEntity.IsActive
-                    }).FirstOrDefaultAsync(cust => cust.CustomerID == id);
+                var customerModel = await _unitOfWork.CustomerRepository.GetByIdAsync(id);
+                   
 
                 if (customerModel == null) return NotFound();
 
 
                 return customerModel;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     "Error retrieving data from the database");
             }
         }
         [HttpPost(Name ="CreateCustomer")]
-        public async Task<ActionResult<CustomerModel>> CreateCustomer(CustomerModel customerModel)
+        public async Task<ActionResult<Customer>> CreateCustomer(Customer customerModel)
         {
             try
             {
                 if (customerModel == null)
                     return BadRequest();
                 //convert customer model to entity
+               bool isSuccess=await _unitOfWork.CustomerRepository.AddAsync(customerModel);
+                if (isSuccess)
+                   await _unitOfWork.SaveChangesAsync();
 
-                var newCustomer = new Customer { Email = customerModel.Email, Mobile = customerModel.Email, Name = customerModel.Name, IsActive = true };
-                await dbContext.Customers.AddAsync(newCustomer);
-                await dbContext.SaveChangesAsync();
-                return CreatedAtAction(nameof(GetCustomer),
-                    new { id = newCustomer.CustromerID }, newCustomer);
+                return Created();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     "Error creating new customer record");
             }
         }
         [HttpPut(Name = "UpdateCustomer")]
-        public async Task<ActionResult> Customer( CustomerModel customerModel)
+        public async Task<ActionResult> Customer( Customer customerModel)
         {
-            var existing = await dbContext.Customers.FindAsync(customerModel.CustomerID);
+            var existing = await _unitOfWork.CustomerRepository.GetByIdAsync(customerModel.CustromerID);
 
-            if (existing == null)
+            try
             {
-                return NotFound();
+                if (existing == null)
+                {
+                    _logger.LogInformation("Custoemr Not found");
+                    return NotFound();
+                }
+
+                await _unitOfWork.CustomerRepository.UpdateAsync(customerModel);
+
+                await _unitOfWork.SaveChangesAsync();
             }
-
-            existing.Name = customerModel.Name;
-            existing.Mobile = customerModel.Mobile;
-            existing.Email = customerModel.Email;
-
-            dbContext.ChangeTracker.DetectChanges();
-            await dbContext.SaveChangesAsync();
-
+            catch (Exception ex)
+            {
+                _logger.LogCritical(ex, ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                   "Error creating new customer record");
+            }
             return Ok(existing);
         }
         [HttpDelete("{id:int}",Name ="DeleteCustomer")]
@@ -121,17 +118,17 @@ namespace CustomerCRUD.API.Controllers
         {
             try
             {
-                var customerToDelete = await dbContext.Customers.FirstOrDefaultAsync(c => c.CustromerID == id);
+                var customerToDelete = await _unitOfWork.CustomerRepository.GetByIdAsync(id);
 
                 if (customerToDelete == null)
                 {
                     return NotFound($"Customer with Id = {id} not found");
                 }
-                dbContext.Remove(customerToDelete);
-                await dbContext.SaveChangesAsync();
+               await _unitOfWork.CustomerRepository.DeleteAsync(customerToDelete);
+                await _unitOfWork.SaveChangesAsync();
                 return Ok($"Customer with ID = {id} deleted successfully") ;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     "Error deleting data");

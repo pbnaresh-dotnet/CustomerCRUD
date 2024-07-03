@@ -17,7 +17,7 @@
                 success: function (customer) {      
                     $("#email").val(customer.email);
                     $("#name").val(customer.name);
-                    $("#hdn-customer-id").val(customer.customerID);
+                    $("#hdn-customer-id").val(customer.custromerID);
                 },
                 error: function (a, b) {
                     console.log(a, b);
@@ -32,11 +32,12 @@
                 isAsync: true,
                 dataType: "json",
                 success: function (response) {
+                    console.log(response);
                     $('#customer-list').empty();
                     for (i = 0; i < response.length; i++) {
 
                         var customer = response[i];
-                        $('#customer-list').append('<tr><td>' + customer.customerID + ' </td><td> ' + customer.name + ' </td><td> ' + customer.email + ' </td><td> <a href="javascript:void(this)" onclick="getCustomer(' + customer.customerID + ')" data-customerid="' + customer.customerID + '" class="btn btn-success btn-get-customer" >Get Customer</a> </td></tr>');
+                        $('#customer-list').append('<tr><td>' + customer.custromerID + ' </td><td> ' + customer.name + ' </td><td> ' + customer.email + ' </td><td> <a href="javascript:void(this)" onclick="getCustomer(' + customer.custromerID + ')" data-customerid="' + customer.custromerID + '" class="btn btn-success btn-get-customer" >Get Customer</a> </td></tr>');
 
                     }                  
                 },
@@ -55,7 +56,7 @@
                 formData.append("name", $("#name").val());
                 formData.append("email", $("#email").val());
                 formData.append("mobile", '234234');
-                var customer = { CustomerID: 1, Name: $("#name").val(), Email: $("#email").val(), Mobile: "12313" };
+                var customer = {  Name: $("#name").val(), Email: $("#email").val(), Mobile: "12313" };
                 console.log(customer);
                 $.ajax({
                     type: 'POST',
@@ -70,7 +71,7 @@
             // UPDATE
             $("#btn-update-customer").on("click", function () {
 
-                var customer = { CustomerID: $("#hdn-customer-id").val(), Name: $("#name").val(), Email: $("#email").val(),Mobile:'23343' };
+                var customer = { CustromerID: $("#hdn-customer-id").val(), Name: $("#name").val(), Email: $("#email").val(), Mobile: '23343' };
                 $.ajax({
                     type: 'PUT',
                     url: baseApiUrl + "customer",

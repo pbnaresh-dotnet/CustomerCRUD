@@ -1,4 +1,5 @@
 using CustomerCRUD.API;
+using CustomerCRUD.API.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
@@ -10,6 +11,8 @@ builder.Services.AddDbContext<CustomerCRUDDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("CustomerCRUDConnection"));
 });
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
 builder.Services.AddControllers(options =>
 {
     options.RespectBrowserAcceptHeader = true;
